@@ -2,8 +2,11 @@
 //  IMSKeychain.m
 //  SecureFoundation
 //
-//  Created by Caleb Davenport on 10/15/12.
-//  Copyright (c) 2012 The MITRE Corporation. All rights reserved.
+//  Upated:
+//     Gregg Ganley    Sep 2013
+//
+//  Created on 10/8/12.
+//  Copyright (c) 2013 The MITRE Corporation. All rights reserved.
 //
 
 #import "SecureFoundation.h"
@@ -233,7 +236,7 @@ char * s = "shared-key.passcode";
     NSParameterAssert(service != nil);
     NSParameterAssert(account != nil);
     
-    if (service == nil || account == nil) { return NO; }
+    if (service == nil || account == nil) { return nil; }
     
     // access keychain
     NSData *data = [self passwordDataForService:service account:account];
@@ -255,10 +258,11 @@ char * s = "shared-key.passcode";
     
     if ( ![chain count] ) chain   = nil;
     
-    NSData              *dataRep  = [NSPropertyListSerialization
-                                     dataFromPropertyList:chain
-                                     format:kCFPropertyListBinaryFormat_v1_0
-                                     errorDescription:nil];
+    NSData *dataRep = [NSPropertyListSerialization
+                       dataWithPropertyList:chain
+                       format:NSPropertyListBinaryFormat_v1_0
+                       options:0
+                       error:nil];
     
     if ( [manager fileExistsAtPath:[URL path]] ) [manager removeItemAtURL:URL
                                                                     error:nil];
@@ -307,9 +311,10 @@ char * s = "shared-key.passcode";
                                error:NULL];
         
         data = [NSPropertyListSerialization
-                dataFromPropertyList:dict
-                              format:kCFPropertyListBinaryFormat_v1_0
-                    errorDescription:nil];
+                dataWithPropertyList:dict
+                format:NSPropertyListBinaryFormat_v1_0
+                options:0
+                error:nil];
         
         [data  writeToURL:URL atomically:NO];
     }

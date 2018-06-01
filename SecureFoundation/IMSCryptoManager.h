@@ -2,8 +2,13 @@
 //  IMSCryptoManager.h
 //  SecureFoundation
 //
-//  Created by Caleb Davenport on 10/18/12.
-//  Copyright (c) 2012 The MITRE Corporation. All rights reserved.
+//  Upated:
+//     Gregg Ganley    Sep 2013
+//     Gregg Ganley    June 2013
+//     Kevin O'Keefe   Apr 2013
+//
+//  Created on 10/18/12.
+//  Copyright (c) 2013 The MITRE Corporation. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -34,8 +39,8 @@ void IMSCryptoManagerPurge(void);
  `IMSCryptoManagerFinalize` is called.
  
  */
-void IMSCryptoManagerStoreTemporaryPasscode(NSString *code);
-void IMSCryptoManagerStoreTemporarySecurityQuestionsAndAnswers(NSArray *questions, NSArray *answers);
+void IMSCryptoManagerStoreTP(NSString *code);
+void IMSCryptoManagerStoreTSQA(NSArray *questions, NSArray *answers);
 
 /*
  
@@ -81,3 +86,10 @@ NSArray *IMSCryptoManagerSecurityQuestions(void);
  */
 BOOL IMSCryptoManagerHasPasscode(void);
 BOOL IMSCryptoManagerHasSecurityQuestionsAndAnswers(void);
+
+
+//**  create a random string of len, encrypt and store in keychain
+NSString *IMSCryptoManagerGenItemCreate(NSArray *answers, int len);
+NSString *IMSCryptoManagerGenItemGet(NSString *passcode);
+NSString *IMSCryptoManagerGenItemReset(NSArray *answers, NSString *passcode);
+

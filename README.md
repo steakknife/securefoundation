@@ -1,11 +1,10 @@
-# iMas Secure Foundation
+# iMAS Secure Foundation[![analytics](http://www.google-analytics.com/collect?v=1&t=pageview&_s=1&dl=https%3A%2F%2Fgithub.com%2Fproject-imas%2Fsecurefoundation&_u=MAC~&cid=1757014354.1393964045&tid=UA-38868530-1)]()
 
 ## Background
 
-The "iMas Secure Foundation" project is designed to provide advanced application-level security based on simple 
-encryption mechanisms. It contains three components: a suite of cipher utilities, a collection of functions to 
-assist with encryption through an application key, and a file-based keychain replacement.  Of note is that we include 
-openSSL - a full-strength general purpose cryptography library.
+The "iMAS Secure Foundation" project is designed to provide advanced application-level security based on simple 
+encryption mechanisms. It contains four components: a suite of cipher utilities, a collection of functions to
+assist with encryption through an application key, a file-based keychain replacement, and the ability to shred files on disk.  Of note, we have removed the OpenSSL dependency and now rely solely on Apple's FIPs-compliant cryptography library (as it turns out, Apple uses openSSL as their crypto libraries under the covers).
 
 ## Vulnerabilities Addressed
 
@@ -23,18 +22,22 @@ openSSL - a full-strength general purpose cryptography library.
   - SRG-APP-000243-MAPP-000050 Severity-CAT II: The mobile application must not share working memory with other applications or processes.
   - SRG-APP-999999-MAPP-000067 Severity-CAT II: The mobile application must clear or overwrite memory blocks used to process sensitive data.
   - SRG-APP-000128-MAPP-000028 Severity-CAT II: The mobile application must not change the file permissions of any files other than those dedicated to its own operation.
+3. Files available in cleartext on disk
+  - CWE-313: Cleartext Storage in a File or on Disk
+  - SRG-APP-999999-MAPP-000067 Severity-CAT II: The mobile application must clear or overwrite memory blocks used to process sensitive data.
 
 
 ## Installation
-
-- Add SecureFoundation as a submodule to your project. `git submodule add https://github.com/mitre-imas/securefoundation.git vendor/securefoundation`
+- Add SecureFoundation as a submodule to your project. `git submodule add https://github.com/project-imas/securefoundation.git vendor/securefoundation`
 - Add the "SecureFoundation" Xcode project as a subproject in your project
-- Add "libSecureFoundation.a" as a target dependency and to the "Link with Binary Libraries" build phase
+- Add "libSecureFoundation.a" as a target dependency and to the "Link Binary With Libraries" build phase
 - Import SecureFoundation in your source files `#import <SecureFoundation/SecureFoundation.h>`
 - Add security.framework to build phase "Link Binary With Libraries"
 
 ## Installation via CocoaPod
 
+- If you don't already have CocoaPods installed, do `$ sudo gem install cocoapods` in your terminal. (See the [CocoaPods website](http://guides.cocoapods.org/using/getting-started.html#getting-started) for details.)
+- In your project directory, do `pod init` to create a Podfile.
 - Add `pod 'SecureFoundation', :git => 'https://github.com/project-imas/securefoundation.git'` to your `PodFile`
 - Run `pod install`
 - Add `#import <SecureFoundation/SecureFoundation.h>` to your app
@@ -56,6 +59,16 @@ Key generation is performed using `PBKDF2` using 1000 rounds by default. It acce
 Encryption is currently implemented using AES with 128 bit blocks, `PKCS7` padding, a randomly generated initialization vector (stored on the resulting cipher text), and a checksum of the plain text. The decryption function performs an integrity check of the decrypted body using the included checksum.
 
 Functions are included to encrypt and decrypt binary data (`NSData` objects), as well as any `plist` object (`NSString`, `NSNumber`, `NSArray`, `NSDictionary`, etc).
+
+There is also a pair of functions to encrypt and decrypt files in the application sandbox:
+
+```
+int IMSCryptoUtilsEncryptFileToPath(NSString *origPath, NSString *destPath, NSData *key);
+void IMSCryptoUtilsDecryptFileToPath(int origSize, NSString *origPath, NSString *destPath, NSData *key);
+```
+
+* The encryption and decryption functions return 0 if the operation succeeds, and -1 otherwise.
+* To encrypt the file in place, replace `destPath` with `nil`. Otherwise, an encrypted copy of the file at `origPath` will be created at `destPath`. 
 
 ### Hashing
 
@@ -132,6 +145,15 @@ It also has methods like:
     
 These methods pass the data through the Crypto Manager to perform encryption or decryption using the application shared key. It is important to note that the account service and account names are *not* stored encrypted in either case.
 
+## File Shredding
+
+`IMSShred.h` contains a function `shred()` that will shred files on disk. It also contains two functions geared specifically towards dynamic libraries:
+
+    void* dlVolatileOpen(NSString* path);
+    void dlVolatileClose(void* handle);
+    
+These functions can be used in place of the standard dlopen() and dlclose() to securely open a dylib and to shred it after it has been closed.
+
 ## License
 
 Copyright 2012 The MITRE Corporation, All Rights Reserved.
@@ -147,8 +169,5 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/deee09168244f6094f41ef957d2a30b7 "githalytics.com")](http://githalytics.com/project-imas/securefoundation)
 
 

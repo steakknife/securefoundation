@@ -2,8 +2,11 @@
 //  IMSCryptoUtils.h
 //  CryptoUtils
 //
-//  Created by Caleb Davenport on 10/8/12.
-//  Copyright (c) 2012 The MITRE Corporation. All rights reserved.
+//  Upated:
+//     Gregg Ganley    Sep 2013
+//
+//  Created on 10/8/12.
+//  Copyright (c) 2013 The MITRE Corporation. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -24,6 +27,12 @@
 NSData *IMSCryptoUtilsPseudoRandomData(size_t length);
 
 /*
+  Generate a random string with the given length in bytes.
+  */
+NSString *IMSGenerateRandomString(int num);
+    
+
+/*
  
  Generate a derived key from the given key. This uses PBKDF2 key generation,
  SHA256 for pseudo random data generation, and one thousand rounds. Indicate
@@ -33,23 +42,37 @@ NSData *IMSCryptoUtilsPseudoRandomData(size_t length);
  */
 NSData *IMSCryptoUtilsDeriveKey(NSData *key, size_t length, NSData *salt);
 
+
 /*
- 
- Run AES-128 encryption on the given data with the given key. The key length
- must be suitable for use in AES encryption. It is preferred that the key is 
- generated using `IMSCryptoUtilsDeriveKey`.
- 
+ Encrypt/decrypt files in sandbox. If destPath is nil, the file is encrypted in place.
+ Otherwise, an encrypted copy of the file at origPath is created at destPath.
+ Functions return 0 if operation was successful and -1 otherwise.
  */
-NSData *IMSCryptoUtilsEncryptData(NSData *data, NSData *key);
+int IMSCryptoUtilsEncryptFileToPath(NSString *origPath, NSString *destPath, NSData *key);
+int IMSCryptoUtilsDecryptFileToPath(NSString *origPath, NSString *destPath, NSData *key);
 
 /*
  
- Run AES-128 decryption on the given data with the given key. Given the nature
- of symetric-key encryption, the key must meet all requirements stated in
- `IMSCryptoUtilsEncryptData` and must be generated in the same fashion.
+ Run AES-128  encryption on the given data with the given key. The key length
+ must be suitable for use in AES encryption. It is preferred that the key is 
+ generated using `IMSCryptoUtilsDeriveKey`.  ciphertext contains IV and a checksum, so ciphertext len > plaintext len
  
  */
+NSData *IMSCryptoUtilsEncryptData(NSData *data, NSData *key);
 NSData *IMSCryptoUtilsDecryptData(NSData *data, NSData *key);
+
+
+//** AES 256 bit encryption, ciphertext len = plaintext len
+NSData *IMSCryptoUtilsSimpleEncryptData(NSData *plaintext, NSData *key, NSData *iv);
+NSData *IMSCryptoUtilsSimpleDecryptData(NSData *ciphertext, NSData *key, NSData *iv);
+
+
+//** AES 256 bit encryption, C buffers, and ciphertext len = plaintext len
+//** Key length must be 32 bytes!!
+//** IV length must be 16 bytes!!
+void *IMSCryptoUtilsC_EncryptData(u_int8_t *plaintext,  int length, u_int8_t *key, u_int8_t *iv);
+void *IMSCryptoUtilsC_DecryptData(u_int8_t *ciphertext, int length, u_int8_t *key, u_int8_t *iv);
+
 
 /*
  
@@ -80,6 +103,7 @@ id IMSConvertDataToPlistObject(NSData *data);
  */
 NSData *IMSHashData_MD5(NSData *data);
 NSData *IMSHashPlistObject_MD5(id object);
+unsigned char *IMSHashBytes_MD5(void *obj, int len);
 
 /*
  
@@ -88,3 +112,12 @@ NSData *IMSHashPlistObject_MD5(id object);
  */
 NSData *IMSHashData_SHA256(NSData *data);
 NSData *IMSHashPlistObject_SHA256(id object);
+unsigned char *IMSHashBytes_SHA256(void *obj, int len);
+
+
+//**
+NSString *IMSEncodeBase64(NSData *inputData);
+NSData *IMSDeodeBase64(NSString *encodedString);
+
+
+
